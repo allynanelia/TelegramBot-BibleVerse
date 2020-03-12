@@ -1,4 +1,4 @@
-from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 from dotenv import load_dotenv
@@ -38,6 +38,7 @@ elif mode == "prod":
                               port=PORT,
                               url_path=TOKEN)
         updater.bot.set_webhook("https://{}.herokuapp.com/{}".format(HEROKU_APP_NAME, TOKEN))
+        updater.idle()
 else:
     logger.error("No MODE specified!")
     sys.exit(1)
@@ -77,8 +78,7 @@ def keyword(update, context):
 def cancel(update, context):
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
-    update.message.reply_text('Bye! Have a wonderful day. Daddy God loves you.',
-                              reply_markup=ReplyKeyboardRemove())
+    update.message.reply_text('Bye! Have a wonderful day. Daddy God loves you.')
 
     return ConversationHandler.END
 
