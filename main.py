@@ -96,14 +96,13 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            KEYWORD: [MessageHandler(Filters.text, keyword)],
-            # CONTINUE_SEARCH: [MessageHandler(Filters.regex('^(Yes|No)$'), continue_search)],
+            KEYWORD: [CommandHandler('cancel', cancel), MessageHandler(Filters.text, keyword)],
             CHOOSING: [MessageHandler(Filters.regex('^Yes$'), start),
                             MessageHandler(Filters.regex('^No$'), cancel)]
 
         },
 
-        fallbacks=[CommandHandler('cancel', cancel), MessageHandler(Filters.regex('^No$'), cancel)]
+        fallbacks=[CommandHandler('cancel', cancel)]
     )
 
     dp.add_handler(conv_handler)
