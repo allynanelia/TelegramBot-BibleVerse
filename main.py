@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from lxml import html
 import os
 import requests
-import re
+import sys
 import logging
 import random
 
@@ -20,6 +20,27 @@ KEYWORD, CHOOSING = range(2)
 reply_keyboard = [['Yes', 'No']]
 markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
+load_dotenv()
+
+# Getting mode, so we could define run function for local and Heroku setup
+mode = os.getenv("MODE")
+TOKEN = os.getenv("TOKEN")
+if mode == "dev":
+    def run(updater):
+        updater.start_polling()
+        updater.idle()
+elif mode == "prod":
+    def run(updater):
+        PORT = int(os.environ.get("PORT", "8443"))
+        HEROKU_APP_NAME = os.environ.get("HEROKU_APP_NAME")
+        # Code from https://github.com/python-telegram-bot/python-telegram-bot/wiki/Webhooks#heroku
+        updater.start_webhook(listen="0.0.0.0",
+                              port=PORT,
+                              url_path=TOKEN)
+        updater.bot.set_webhook("https://{}.herokuapp.com/{}".format(HEROKU_APP_NAME, TOKEN))
+else:
+    logger.error("No MODE specified!")
+    sys.exit(1)
 
 def start(update, context):
     update.message.reply_text(
@@ -66,9 +87,8 @@ def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 def main():
-    load_dotenv()
 
-    updater = Updater(token=os.getenv("TOKEN"), use_context=True)
+    updater = Updater(token=TOKEN, use_context=True)
     dp = updater.dispatcher
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
@@ -92,8 +112,7 @@ def main():
     dp.add_error_handler(error)
 
     # Start the Bot
-    updater.start_polling()
-    updater.idle()
+    run(updater)
 
 if __name__ == '__main__':
     main()
